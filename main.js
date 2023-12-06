@@ -9,13 +9,12 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
   let callBack;
 
   async function createUI() {
-
     const screenHeight = window.screen.height;
 
     let container = document.createElement("div");
     container.id = "jukshio-container";
     container.style.width = "100%";
-    container.style.height = screenHeight + 10 + 'px';
+    container.style.height = screenHeight + 10 + "px";
     container.style.position = "absolute";
     container.style.top = "0";
     container.style.left = "0";
@@ -119,7 +118,8 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
     poweredBy.style.marginLeft = "auto";
     poweredBy.style.marginRight = "auto";
     poweredBy.style.fontSize = "20px";
-    poweredBy.innerHTML = "<span style='font-size: 15px'>powered by</span> Jukshio";
+    poweredBy.innerHTML =
+      "<span style='font-size: 15px'>powered by</span> Jukshio";
 
     content.appendChild(poweredBy);
 
@@ -181,9 +181,9 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
 
       if (isUIClosed) {
         callBack({
-          session_status: 'failed',
+          session_status: "failed",
           session_result: {
-            reason: 'Qr code closed before completing request'
+            reason: "Qr code closed before completing request",
           },
         });
         return;
@@ -209,7 +209,7 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
         console.log(resData);
         closeUI();
         callBack(resData);
-        return
+        return;
       }
 
       if (resData.session_status === "failed") {
@@ -218,9 +218,8 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
         callBack(resData);
         return;
       }
-
     } catch (err) {
-      console.log(err)
+      console.log(err);
       console.log(err.message);
       closeUI();
     }
@@ -232,11 +231,11 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
 
     if (sessionId === undefined || sessionId === null) {
       _callBack({
-        session_status: 'failed',
+        session_status: "failed",
         session_result: {
-          reason: 'Invalid Session Id'
+          reason: "Invalid Session Id",
         },
-      })
+      });
     }
 
     callBack = _callBack;
@@ -253,18 +252,49 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
       redirectUrl = "https://manapuram-demo.jukshio.com/auth";
     }
 
-    redirectUrl = "https://manapuram-demo.jukshio.com/auth"
+    redirectUrl = "https://manapuram-demo.jukshio.com/auth";
 
-    new QRCode(document.getElementById('qrcode'), {
+    new QRCode(document.getElementById("qrcode"), {
       text: redirectUrl + "?session_token=" + token,
       width: 200,
       height: 200,
-      colorDark : '#000',
-      colorLight : '#fff',
-      correctLevel : QRCode.CorrectLevel.L
-    });    
+      colorDark: "#000",
+      colorLight: "#fff",
+      correctLevel: QRCode.CorrectLevel.L,
+    });
 
     createSession(sessionId);
+  };
+
+  /**
+   * @param {String} params.account_number
+   * @param {String} params.ifsc_code
+   */
+  window.jukshioPennyDropApi = async (params) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const initialToken = await getAuthToken();
+        const body = new FormData();
+        body.append("app_id", "mannapuram");
+        body.append("referenceId", "mannapuram_testing")
+        body.append("account_number", params.account_number);
+        body.append("ifsc", params.ifsc_code);
+        const res = await fetch(
+          "https://dkyc-demos-stag-gcp.vishwamcorp.com/v1" + "/penny_drop",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + initialToken,
+            },
+            body: body,
+          }
+        );
+        const data = await res.json();
+        resolve(data);
+      } catch (err) {
+        reject(err);
+      }
+    });
   };
 
   function displayLoader() {
@@ -304,6 +334,24 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
       .sign(secret);
 
     return jwt;
+  }
+
+  async function getAuthToken() {
+    const body = new FormData();
+    body.append('app_id', 'dkyc');
+    body.append('app_key', 'f4mNl0y9AHgaTIKIUo');
+    body.append('send_token', '1');
+    const res = await fetch(
+      "https://dkyc-demos-stag-gcp.vishwamcorp.com/v1" + "/get_auth_token",
+      {
+        method: "POST",
+        body: body,
+      }
+    );
+
+    const data = await res.json();
+
+    return data.token;
   }
 
   const loaderGif =
