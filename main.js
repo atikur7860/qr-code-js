@@ -229,6 +229,8 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
     let status = await createUI();
     let redirectUrl;
 
+    isUIClosed = false;
+
     if (sessionId === undefined || sessionId === null) {
       _callBack({
         session_status: "failed",
@@ -313,9 +315,12 @@ import * as jose from "https://cdnjs.cloudflare.com/ajax/libs/jose/5.1.3/index.j
   }
 
   function closeUI() {
+    console.log('came here');
     let body = document.getElementsByTagName("body")[0];
     let container = document.getElementById("jukshio-container");
-    body.removeChild(container);
+    if (container) {
+      body.removeChild(container);
+    }
     isUIClosed = true;
   }
 
